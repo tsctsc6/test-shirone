@@ -1,0 +1,195 @@
+# 页面数据实体维护
+
+除了常规的文章和说说，博客中还有很多展示特定内容的独立页面（如设备清单、友链、项目、技能、时间线、罗盘、番剧与音乐）。
+这些页面的数据全部存放在内容仓库的 `data/` 目录下，采用纯 TypeScript 格式维护，结构简单明了，只需模仿模板填入自己的数据即可。
+
+---
+
+## 1. 个人设备清单：`data/devices.ts`
+
+对应页面：`/devices/`
+
+```typescript
+export const devicesData = [
+  {
+    id: "macbook-pro",
+    name: "MacBook Pro 16",
+    brand: "Apple",
+    category: "desk",              // 对应 config/devices.yaml 中的分类 key
+    status: "active",              // 状态："active"（主力）| "backup"（备用）| "archived"（已退役）| "wishlist"（心愿）
+    specs: "M3 Max / 64GB / 2TB",  // 核心硬件规格
+    description: "主力开发与设计工作站，性能卓越。",
+    icon: "material-symbols:laptop-mac-rounded",
+    featured: true,                // 是否展示 Featured 推荐徽章
+    year: "2024",
+    link: "https://www.apple.com/macbook-pro/"
+  }
+];
+```
+
+个人设备展示页排版效果：
+
+![个人设备展示页排版效果](../../images/03-content/04-data/01-devices-page-preview.png)
+*图 1-1：个人设备展示页卡片排版*
+
+---
+
+## 2. 友情链接：`data/friends.ts`
+
+对应页面：`/friends/`
+
+```typescript
+export const friendsData = [
+  {
+    id: 1,
+    title: "友人A的博客",
+    imgurl: "https://example.com/avatar.webp",
+    desc: "热爱生活与开源技术的技术博主",
+    siteurl: "https://example.com",
+    tags: ["技术", "前端"]         // 标签会自动生成为页面顶部的筛选按钮
+  }
+];
+```
+
+---
+
+## 3. 开源项目：`data/projects.ts`
+
+对应页面：`/projects/`
+
+```typescript
+export const projectsData = [
+  {
+    key: "my-app",
+    title: "超级工具箱",
+    summary: "一款高颜值且实用的多功能桌面工具。",
+    category: "app",               // 对应 config/projects.yaml 中的分类 key
+    phase: "shipped",              // 状态："shipped"（已发布）| "building"（开发中）| "exploring"（探索期）
+    technologies: ["Svelte", "TypeScript", "Tailwind CSS"],
+    icon: "material-symbols:apps-rounded",
+    featured: true,
+    repository: "https://github.com/yourname/my-app",
+    website: "https://app.example.com",
+    year: "2026"
+  }
+];
+```
+
+---
+
+## 4. 技能图谱：`data/skills.ts`
+
+对应页面：`/skills/`
+
+```typescript
+export const skillsData = [
+  {
+    name: "TypeScript",
+    description: "严谨的类型系统设计与应用架构。",
+    icon: "simple-icons:typescript",
+    category: "frontend",
+    level: "expert"                // 熟练度："beginner" | "intermediate" | "advanced" | "expert"
+  }
+];
+```
+
+---
+
+## 5. 大事记时间线：`data/timeline.ts`
+
+对应页面：`/timeline/`
+
+```typescript
+export const timelineData = [
+  {
+    title: "个人博客全新上线",
+    date: "2026.08",
+    category: "milestone",
+    subtitle: "个人站点升级",
+    description: "完成内容与代码分离架构，博客全站速度大幅提升。",
+    highlights: [
+      "实现双仓解耦与全自动化构建",
+      "优化全站中文字体体积"
+    ],
+    tags: ["Astro", "前端"],
+    icon: "material-symbols:rocket-launch-rounded",
+    featured: true
+  }
+];
+```
+
+大事记时间线页面节点展示：
+
+![大事记时间线页面节点展示](../../images/03-content/04-data/02-timeline-page-preview.png)
+*图 1-2：大事记时间线节点排版*
+
+---
+
+## 6. 站点罗盘导航：`data/compass.ts`
+
+对应页面：`/compass/`
+
+```typescript
+export const compassData = [
+  {
+    key: "dev",
+    name: "开发常用",
+    icon: "material-symbols:code-rounded",
+    blurb: "日常编码查阅的权威工具与文档",
+    entries: [
+      {
+        label: "GitHub",
+        href: "https://github.com",
+        note: "全球领先的开源代码托管平台",
+        icon: "fa6-brands:github"
+      },
+      {
+        label: "MDN Web Docs",
+        href: "https://developer.mozilla.org",
+        note: "权威的现代前端技术标准文档",
+        icon: "material-symbols:menu-book-rounded"
+      }
+    ]
+  }
+];
+```
+
+---
+
+## 7. 本地追番清单：`data/anime.ts`
+
+对应页面：`/anime/`
+
+```typescript
+export const animeData = [
+  {
+    title: "葬送的芙莉莲",
+    type: "tv",
+    status: "completed",           // 状态："watching" | "completed" | "planned" | "on_hold" | "dropped"
+    rating: 9.8,
+    progress: { current: 28, total: 28 },
+    cover: "/assets/anime/frieren.webp",
+    tags: ["奇幻", "冒险", "治愈"],
+    description: "讲述千年精灵魔法使芙莉莲在勇者逝去后的旅行故事。"
+  }
+];
+```
+
+---
+
+## 8. 本地音乐曲目：`data/music.ts`
+
+供侧边栏音乐播放器在本地模式或混合模式下读取：
+
+```typescript
+export const musicTracks = [
+  {
+    id: "track-1",
+    title: "口笛で愛は歌えない",
+    artist: "Dazbee",
+    cover: "assets/images/music/dazbee.webp",
+    source: "/assets/music/dazbee.mp3",
+    duration: 241
+  }
+];
+```

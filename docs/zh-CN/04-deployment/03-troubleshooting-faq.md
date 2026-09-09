@@ -1,0 +1,121 @@
+# 常见问题与排查指南
+
+本篇文档汇总了在内容分离架构使用、日常写作与自动化部署过程中可能遇到的常见疑问与排错指南。
+
+---
+
+## 1. 推送内容后，网站没有更新？
+
+请按照以下顺序逐步排查：
+
+### 排查 A：检查 GitHub Actions 运行记录与令牌权限
+1. 打开你的**内容仓库**的 **Actions** 标签页；
+2. 查看最新一次的 `Trigger Theme Build` 是否成功完成（绿色对勾）；
+3. 如果显示红色失败，点击进入查看错误日志：
+   - 如果提示 `Resource not accessible by personal access token`，说明你的 `DISPATCH_TOKEN` 细粒度访问令牌未被授予代码仓的 **Contents: Read and write** 权限。请前往 GitHub 个人设置重新生成或编辑该令牌，并将权限修正为读写；
+   - 如果提示校验未通过，说明某个 YAML 配置文件或文章 Frontmatter 存在格式或类型错误。
+
+### 排查 B：检查文章是否被标记为了草稿
+检查文章顶部的 Frontmatter 中是否写了：
+```yaml
+draft: true
+```
+当 `draft: true` 时，文章属于草稿状态，在生产环境构建时会被自动过滤隐藏。将其修改为 `draft: false` 即可正常展示。
+
+### 排查 C：检查文章发布日期格式
+发布日期必须遵循严格的 ISO 日期格式，例如：
+- 正确：`published: 2026-08-27` 或 `published: 2026-08-27 15:30:00`
+- 错误：`published: 2026/8/27` 或 `published: 2026.08.27`
+
+---
+
+## 2. Cloudflare 构建报错 `__dirname is not defined`？
+
+### 问题表现
+在 Cloudflare 部署构建时，静态预渲染页面中断并抛出错误：
+```text
+Caught error rendering /about: Error: Failed to prerender ...: __dirname is not defined
+```
+
+### 产生原因
+在创建项目时误选了 Worker 模式或在部署命令中填写了 `npx wrangler deploy`，导致平台自动安装了 `@astrojs/cloudflare` 适配器，将静态渲染强行切换到了非 Node.js 的边缘 Worker 运行时。
+
+### 解决方法
+1. Shirone 是纯静态网站生成架构，无需使用 Worker 服务端适配器；
+2. 登录 Cloudflare 控制台，进入 **Compute (Workers & Pages)** -> **Create** -> 在页面中选择 **Pages** 模式创建项目；
+3. 构建命令填入 `pnpm run build`，输出目录填入 `dist`，无需配置任何部署命令。
+
+---
+
+## 3. 平台构建提示 Node 版本过低或语法不支持？
+
+### 问题表现
+在云平台构建时提示不支持某些 ES 模块语法、语法解析失败或直接警告 Node 版本过低。
+
+### 解决方法
+许多托管平台的构建机默认采用 Node.js 18 或更早版本。请在平台的**环境变量**设置中明确指定 Node 版本：
+- 变量名：`NODE_VERSION`
+- 变量值：`22`
+
+---
+
+## 4. 平台构建拉取私有内容仓时卡死或失败？
+
+### 问题表现
+在构建日志中停留在内容拉取阶段，或者直接报错退出。
+
+### 解决方法
+1. 检查环境变量 `CONTENT_REPO_URL` 中的个人访问令牌是否过期或权限不足；
+2. 确保克隆链接格式正确包含了访问令牌：
+   ```text
+   https://x-access-token:你的GitHub个人访问令牌@github.com/用户名/内容仓库名.git
+   ```
+3. 在托管平台环境变量中添加 `GIT_TERMINAL_PROMPT`，值设为 `0`，禁止 Git 在后台产生交互式输入等待。
+
+---
+
+## 5. 配置了部署钩子但推送后平台没有触发构建？
+
+### 解决方法
+1. 打开**内容仓库**的 **Actions** 页面，查看 `Trigger Theme Build` 工作流中对应平台的触发步骤是否被跳过；
+2. 检查内容仓库 **Settings** -> **Secrets and variables** -> **Actions** 中的 Secret 变量名称是否严格匹配：
+   - GitHub Actions 跨仓构建：`DISPATCH_TOKEN`
+   - Cloudflare Pages：`CLOUDFLARE_DEPLOY_HOOK`
+   - Vercel：`VERCEL_DEPLOY_HOOK`
+   - 腾讯云 EdgeOne：`EDGEONE_DEPLOY_HOOK`
+   - Netlify：`NETLIFY_DEPLOY_HOOK`
+3. 确保从云平台复制的 Webhook URL 完整无缺漏。
+
+---
+
+## 6. 修改 YAML 文件后提示类型检查报错？
+
+Shirone 拥有严格的类型检查系统。如果终端或 Actions 输出类似：
+```text
+Type '{ titel: string }' is not assignable to type 'DeepPartial<SiteConfig>'
+Did you mean "title"?
+```
+- 这说明你在 YAML 中写了一个主题未定义的属性名称；
+- 请仔细核对对应配置文档，修改为正确的拼写即可。
+
+---
+
+## 7. 外链图片无法加载或出现 403 拒绝访问？
+
+如果使用的是第三方图床（如 B 站图床），通常是因为图床启用了 Referer 防盗链机制。
+
+### 解决方法
+在 `config/site.yaml` 中添加该图床的域名白名单：
+```yaml
+imageOptimization:
+  noReferrerDomains:
+    - "*.hdslb.com"
+    - "*.bilibili.com"
+```
+主题会自动为该域名的图片添加防盗链绕过属性。
+
+---
+
+## 8. 修改 `docs/` 目录会触发构建吗？
+
+不会。`docs/` 目录以及根目录的 `README` 文件已被工作流与同步脚本排除，提交文档修改不会触发构建。

@@ -1,0 +1,110 @@
+# 追番与追剧页面配置
+
+`config/anime.yaml` 用于管理 `/anime/` 页面的数据来源与展示策略。
+
+---
+
+## 核心设计理念
+
+追番页面采用**本地优先与零外部阻塞**设计：
+- 无论你选择何种外部同步方式，页面在访客浏览器打开时都不会直接向 Bilibili 或 Bangumi 发送缓慢的客户端请求；
+- 所有外部数据都在构建期通过同步机制抓取为本地快照，保证前台直接读取本地快照数据，不受外部接口波动影响；
+- 如果外部 API 故障或接口超时，系统会自动静默降级为本地手写数据，确保页面永不白屏破版。
+
+追番展示页面实际画面：
+
+![追番页面展示与进度条效果](../../images/02-config/04-anime/01-anime-page-preview.png)
+*图 1-1：追番追剧页面卡片与进度条效果*
+
+---
+
+## 工作模式详解
+
+### 模式一：纯本地数据模式（默认推荐）
+
+适合手动维护追番清单，零外部依赖，稳定可控。
+
+```yaml
+enable: true
+
+source:
+  kind: "local"         # 直接读取 data/anime.ts 中的数据
+```
+
+只需在 `data/anime.ts` 中按照 TypeScript 格式追加你的番剧条目即可，条目的评分、追番进度与状态筛选标签会自动生成。
+
+---
+
+### 模式二：Bangumi 账号同步模式
+
+从你的 Bangumi 公开账号拉取追番与追剧收藏列表。
+
+```yaml
+enable: true
+
+source:
+  kind: "snapshot"
+  provider: "bangumi"
+  file: "bangumi.json"
+  fetchOnDev: true
+
+fallback:
+  kind: "local"         # 同步失败时自动回退使用 data/anime.ts 本地数据
+
+providers:
+  bangumi:
+    enable: true
+    userId: "你的Bangumi用户ID或个性域名"
+    request:
+      pageSize: 30       # 单页拉取数量
+      maxItems: 300      # 最大抓取条目数上限
+      minDelayMs: 300    # 请求节流间隔，单位毫秒
+```
+
+---
+
+### 模式三：Bilibili 追番同步模式
+
+从你的 Bilibili 个人空间同步追番与追剧列表。
+
+```yaml
+enable: true
+
+source:
+  kind: "snapshot"
+  provider: "bilibili"
+  file: "bilibili.json"
+  fetchOnDev: true
+
+fallback:
+  kind: "local"
+
+providers:
+  bilibili:
+    enable: true
+    # 你的 B 站个人空间数字 UID（例如 114514）
+    vmid: "114514"
+    # 保存 SESSDATA 的环境变量名称（严禁把凭据明文写进 YAML）
+    sessdataEnv: "BILI_SESSDATA"
+    # 封面图处理策略：
+    # - "local"：构建期自动下载封面到本地静态目录，访客零外链请求（推荐）
+    # - "remote"：直接加载 B 站图片外链
+    # - "none"：不使用封面，卡片呈现主题色渐变占位
+    cover:
+      mode: "local"
+      useWebp: true
+```
+
+#### Bilibili 空间 UID 获取方式：
+打开个人空间页面，链接最后的数字即为 UID：
+
+![Bilibili ID获取](../../images/02-config/04-anime/02-bilibili-id.png)
+*图 1-2：Bilibili 个人空间链接与 UID 位置*
+
+#### Bilibili SESSDATA 获取方式：
+在浏览器开发者工具中找到存储的 Cookie 项：
+
+![Bilibili SESSDATA获取](../../images/02-config/04-anime/03-bilibili-sessdata.png)
+*图 1-3：浏览器 Cookie 中获取 SESSDATA 凭证*
+
+> 安全提醒：如果你的 B 站追番列表设置为私密，你需要在 GitHub Actions 的 Secrets 或本地环境变量中设置 `BILI_SESSDATA`。**绝对不要将任何 Cookie 凭据直接写在 YAML 配置文件中**。

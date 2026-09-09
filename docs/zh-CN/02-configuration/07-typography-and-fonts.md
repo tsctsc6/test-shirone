@@ -1,0 +1,106 @@
+# 全站字体与排版配置
+
+`config/font.yaml` 用于统一管理全站的文字渲染族系与自动化字体子集裁剪。
+
+---
+
+## 字体三大角色分工
+
+在博客中，文字被清晰地划分为 3 类角色：
+1. `body`：西文与基础标点（英文字母、阿拉伯数字、常用西文符号）；
+2. `cjk`：中日韩文字（汉字简体与繁体、日文平假名与片假名、韩文）；
+3. `mono`：等宽代码字体（用于文章代码块、行内代码、终端命令输出）。
+
+---
+
+## 模式一：纯系统字体模式（零额外字体下载）
+
+如果你追求零字体资源下载、完全依赖访客设备自带字体，只需将 `mode` 设为 `system`：
+
+```yaml
+mode: "system"
+fontFamilies: []
+```
+
+在该模式下，构建器不会打包任何字体文件，网页体积最小，加载速度最快。
+
+---
+
+## 模式二：自定义字体模式（默认推荐）
+
+使用定制的现代英文字体与圆润中文字体，呈现 Material 3 设计美学：
+
+```yaml
+mode: "custom"
+
+fontFamilies:
+  # 1. 现代西文字体 Outfit
+  - id: "outfit-body"
+    family: "Outfit"
+    role: "body"
+    source: "fontsource"
+    variants:
+      - file: "@fontsource/outfit/400.css"
+        weight: 400
+        style: "normal"
+      - file: "@fontsource/outfit/500.css"
+        weight: 500
+        style: "normal"
+      - file: "@fontsource/outfit/700.css"
+        weight: 700
+        style: "normal"
+    fallback: ["ui-sans-serif", "system-ui", "sans-serif"]
+    display: "swap"
+    preload: true
+
+  # 2. 中日韩字体 Yozai Medium（全量汉字与日文字符覆盖）
+  - id: "yozai-cjk"
+    family: "Yozai Medium"
+    role: "cjk"
+    source: "local"
+    variants:
+      - file: "src/assets/fonts/Yozai-Medium.ttf"
+        weight: 500
+        style: "normal"
+    fallback: ["system-ui", "sans-serif"]
+    display: "swap"
+    preload: true
+
+  # 3. 等宽代码字体 JetBrains Mono
+  - id: "jetbrains-mono"
+    family: "JetBrains Mono"
+    role: "mono"
+    source: "fontsource"
+    variants:
+      - file: "@fontsource/jetbrains-mono/400.css"
+        weight: 400
+        style: "normal"
+    fallback: ["ui-monospace", "monospace"]
+    display: "swap"
+    preload: false
+
+# 4. 自动化字体子集化裁剪配置
+subsetting:
+  enable: true             # 生产构建时自动裁剪中文字体
+  includeContent: true     # 自动扫描全部文章与说说正文
+  includeI18n: true        # 自动扫描全站多语言词典
+  includeConfig: true      # 自动扫描站点配置与导航
+  includeCommon: true      # 包含通用标点与基础字符
+  allowRemoteText: false   # 允许拉取远端文本分析（安全模式保持 false）
+```
+
+---
+
+## 自动化字体裁剪机制
+
+中文字体通常体积高达 15MB 到 30MB，如果完整加载会严重拖慢网站速度。Shirone 内置了全自动的字体子集裁剪流水线：
+
+- **开发调试环境**：自动加载完整原始字体，编写任何新汉字实时可见，便于本地实时调试；
+- **生产构建环境**：自动扫描全站所有文章、说说、站点配置以及多语言词典中的全部字形，动态提取并打包为专属的精简版 `.woff2` 格式，将 15MB 的字体自动裁剪至 300KB 左右（体积减少 97% 以上），显著加快页面加载。
+
+---
+
+## 如何引入自己的本地中文字体
+
+1. 将你的 `.woff2` 或 `.ttf` 字体文件放入主题代码仓的 `src/assets/fonts/` 目录下；
+2. 在 `font.yaml` 中将 `role: "cjk"` 的 `file` 路径指向该字体文件即可。构建时，主题会自动对其进行全自动子集化裁剪与体积预算校验。

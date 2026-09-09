@@ -1,0 +1,121 @@
+# 相册管理指南
+
+Shirone 提供了一个基于纯数据与目录驱动的瀑布流相册系统，展示在 `/albums/` 页面。
+
+---
+
+## 建立新相册
+
+在内容仓库的 `public/images/albums/` 目录下，为每一个相册新建一个独立的文件夹（文件夹名称即为相册的访问路径标识）：
+
+```text
+public/images/albums/
+├── KyotoTrip/            # 相册文件夹
+│   ├── info.json         # 相册元数据配置
+│   ├── cover.webp        # 封面图
+│   ├── 01.webp           # 第一张照片
+│   └── 02.webp           # 第二张照片
+```
+
+每个相册目录下都必须包含一个 `info.json` 文件。
+
+相册汇总首页的大图封面卡片列表：
+
+![相册汇总页的大图封面卡片列表](../../images/03-content/03-albums/01-albums-masonry-preview.png)
+*图 1-1：相册汇总页封面卡片列表*
+
+点击进入相册后的瀑布流照片画廊排版：
+
+![相册瀑布流照片画廊排版](../../images/03-content/03-albums/02-albums-masonry-detail-preview.png)
+*图 1-2：相册内照片瀑布流画廊排版*
+
+---
+
+## 相册的三种工作模式
+
+### 模式一：本地照片相册
+
+直接把照片放在相册文件夹中。构建系统会自动扫描所有按序号命名的图片文件（如 `01.webp`, `02.webp`）：
+
+```json
+{
+  "title": "京都古韵",
+  "description": "漫步在三年坂二年坂的雨后清晨",
+  "date": "2026-08-15",
+  "location": "日本 · 京都",
+  "tags": ["旅行", "摄影"],
+  "layout": "masonry",
+  "columns": 3,
+  "hidden": false
+}
+```
+
+> 命名技巧：为了保证照片按照你想要的顺序展示，建议使用 `01.webp`、`02.webp` 这样的补零数字命名。
+
+---
+
+### 模式二：远端外链相册
+
+如果你的照片数量很多或存放在外部图床、对象存储桶中，可以使用 `mode: "external"` 并在 `photos` 列表中声明：
+
+```json
+{
+  "mode": "external",
+  "title": "风光摄影集",
+  "description": "自然与山川的壮美瞬间",
+  "date": "2026-08-01",
+  "cover": "https://img.example.com/cover.webp",
+  "tags": ["风光"],
+  "layout": "masonry",
+  "columns": 3,
+  "photos": [
+    {
+      "src": "https://img.example.com/photo1.webp",
+      "title": "日照金山",
+      "description": "清晨第一缕阳光照耀在雪山顶峰",
+      "width": 1920,
+      "height": 1080
+    },
+    {
+      "src": "https://img.example.com/photo2.webp",
+      "title": "星空银河",
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}
+```
+
+> 建议：尽可能提供图片的 `width`（宽度）与 `height`（高度），这样瀑布流相册在首屏排版时不会发生抖动和布局错位。
+
+---
+
+### 模式三：加密保护相册
+
+只需在 `info.json` 中配置 `"password"` 字段即可创建加密私密相册：
+
+```json
+{
+  "title": "私人家庭相册",
+  "description": "家庭聚会记录",
+  "date": "2026-08-20",
+  "password": "your_private_password",
+  "layout": "masonry",
+  "columns": 3
+}
+```
+
+加密相册在被访问时，必须输入正确密码才能查看照片大图。
+
+---
+
+## 相册常用高级属性
+
+在 `info.json` 中，还可以配置以下属性定制展示效果：
+
+| 属性名称 | 类型 | 默认值 | 作用说明 |
+| :--- | :--- | :--- | :--- |
+| `layout` | 字符串 | `"masonry"` | 照片排版布局，可选 `"masonry"`（瀑布流）或 `"grid"`（等高网格） |
+| `columns` | 数字 | `3` | 桌面端排版列数，支持 `1` 到 `6` 列 |
+| `hidden` | 布尔值 | `false` | 是否隐藏相册。设为 `true` 时不会在相册总览列表中展示，但仍可通过直接链接访问 |
+| `cover` | 字符串 | 无 | 自定义封面图路径，留空时默认取相册内 `cover.webp` 或第一张照片 |

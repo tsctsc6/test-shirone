@@ -1,0 +1,185 @@
+# 顶栏导航与侧边栏编排
+
+## 一、顶部导航栏配置：`config/nav-bar.yaml`
+
+顶部导航栏决定了博客顶栏与移动端侧边抽屉的菜单结构。导航列表采用**整体替换**模式，你的配置文件需要完整列出希望展示的导航条目。
+
+### 1. 三种导航项编写方式
+
+#### 方式 A：使用主题内置预设（推荐）
+内置预设会自动关联全站多语言词典，并自动适配 M3E 风格图标与高亮逻辑：
+```yaml
+links:
+  - preset: Home        # 主页
+  - preset: Archive     # 归档
+  - preset: Friends     # 友链
+  - preset: Moments     # 动态说说
+```
+
+**主题完整预设名称速查表**：
+| 预设名称 | 页面路由 | 默认对应功能 |
+| :--- | :--- | :--- |
+| `Home` | `/` | 博客主页与最新文章流 |
+| `Archive` | `/archive/` | 文章时间归档 |
+| `Friends` | `/friends/` | 友情链接 |
+| `Moments` | `/moments/` | 动态生活说说 |
+| `Anime` | `/anime/` | 追番与追剧收藏 |
+| `Compass` | `/compass/` | 站点罗盘与精选书签 |
+| `Skills` | `/skills/` | 技能图谱与熟练度 |
+| `Projects` | `/projects/` | 开源项目与作品展示 |
+| `Devices` | `/devices/` | 个人数码与桌面设备清单 |
+| `Timeline` | `/timeline/` | 大事记时间线 |
+| `Albums` | `/albums/` | 摄影与画廊相册 |
+| `Categories` | `/categories/` | 文章分类总览索引 |
+| `Tags` | `/tags/` | 文章标签云索引 |
+| `About` | `/about/` | 关于博主与站点介绍 |
+| `GitHub` | 项目源码地址 | 外部开源仓库链接 |
+
+#### 方式 B：自定义外部或站内链接
+可以自由指定名称、跳转链接与 Iconify 图标：
+```yaml
+links:
+  - name: "我的知识库"
+    url: "https://wiki.example.com"
+    icon: "material-symbols:menu-book-rounded"
+    external: true     # 新窗口打开
+```
+
+#### 方式 C：多级下拉子菜单
+使用 `children` 字段即可创建带有展开浮层的下拉菜单：
+```yaml
+links:
+  - name: "个人档案"
+    icon: "material-symbols:account-circle-outline-rounded"
+    children:
+      - preset: About
+      - preset: Skills
+      - preset: Projects
+      - preset: Devices
+      - preset: Timeline
+```
+
+![顶部导航栏下拉子菜单效果](../../images/02-config/03-navbar/01-navbar-dropdown.png)
+*图 1-1：顶部导航栏多级下拉子菜单效果*
+
+---
+
+## 二、侧边栏布局编排：`config/sidebar.yaml`
+
+Shirone 提供了数据驱动的侧边栏布局系统，支持在宽屏设备上自动展开双侧栏布局，并支持精细控制每个组件的吸顶与页面过滤规则。
+
+### 完整示例与参数详解
+
+```yaml
+enable: true
+
+# 侧栏编排模式：
+# - "single"：单栏模式，所有组件放入同一个侧栏
+# - "dual"：双栏模式，在宽屏电脑（屏幕宽度 >= 1280px）时自动展开左、中、右三列布局
+arrangement: "dual"
+
+# 主侧栏位置："left"（靠左，默认）| "right"（靠右）
+side: "left"
+
+# 侧边栏组件清单（按数组顺序自上而下摆放）
+components:
+  # 1. 博主名片卡（内容读取 profile.yaml）
+  - type: "profile"
+    enable: true
+    slot: "top"         # "top" 表示固定在顶部
+
+  # 2. 侧栏音乐播放器（内容读取 music.yaml）
+  - type: "music"
+    enable: true
+    slot: "top"
+
+  # 3. 首页公告栏（仅在首页展示）
+  - type: "announcement"
+    enable: true
+    slot: "top"
+    pages: ["home"]     # 页面过滤，仅在首页展示
+
+  # 4. 文章分类列表（粘性吸顶）
+  - type: "categories"
+    enable: true
+    slot: "sticky"      # "sticky" 表示页面向下滚动时吸附在视口上方
+    collapseAfter: 5    # 超出 5 项时显示“展开更多”按钮
+
+  # 5. 标签云
+  - type: "tags"
+    enable: true
+    slot: "sticky"
+    collapseAfter: 15
+
+  # 6. 站点运行统计（仅在 dual 双栏模式下放置在副侧栏）
+  - type: "stats"
+    enable: true
+    slot: "top"
+    column: "secondary" # "secondary" 表示放入副侧栏（dual 模式生效）
+
+  # 7. 迷你月度文章历
+  - type: "calendar"
+    enable: true
+    slot: "top"
+    column: "secondary"
+    startOfWeek: "mon"  # 周起始日："mon"（周一）| "sun"（周日）
+
+  # 8. 文章目录（仅在文章详情页展示并吸顶跟随）
+  - type: "toc"
+    enable: true
+    slot: "sticky"
+    column: "secondary"
+    pages: ["post"]     # 仅在文章详情页生效
+```
+
+### 侧边栏组件与页面过滤参数速查
+
+- **停靠位 (`slot`)**：
+  - `"top"`：固定在侧栏顶部；
+  - `"sticky"`：吸附在跟随滚动区域，页面长滚动时常驻可见。
+- **分栏归属 (`column`)**：
+  - `"primary"`：放置在主侧栏（默认）；
+  - `"secondary"`：放置在副侧栏（在 `arrangement: "dual"` 且屏幕宽度 $\ge$ 1280px 时展开）。
+- **页面过滤器 (`pages`)**：
+  - 省略或传空数组表示全站所有页面均渲染；
+  - 可填入的页面标识符：`"home"`, `"archive"`, `"friends"`, `"moments"`, `"anime"`, `"compass"`, `"skills"`, `"projects"`, `"devices"`, `"timeline"`, `"albums"`, `"about"`, `"categories"`, `"tags"`, `"post"`, `"rss"`, `"atom"`。
+
+---
+
+## 三、桌面端右键上下文菜单：`config/context-menu.yaml`
+
+Shirone 提供了桌面端原生交互体验的右键上下文菜单系统。菜单采用零额外负担设计原则，在未触发或被禁用时完全不产生冗余网络请求。
+
+### 1. 完整配置示例
+
+```yaml
+# 主开关：是否启用桌面端右键上下文菜单
+# 设为 false 时，系统不会向页面注入任何 DOM 结构与客户端脚本
+enable: true
+
+# 生效页面过滤器：省略或留空表示全站所有页面均生效
+# 可按需限定只在特定页面启用
+pages:
+  - home
+  - post
+  - moments
+
+# 菜单动作清单（按数组顺序自上而下展示）
+actions:
+  - copySelection
+  - backToTop
+  - sharePageLink
+```
+
+### 2. 菜单动作与交互规则速查
+
+| 动作标识 | 动作名称 | 触发与显示条件 | 实际执行行为 |
+| :--- | :--- | :--- | :--- |
+| `copySelection` | 复制选中内容 | 鼠标选中文本且选区与点击元素相交 | 将当前选中的文本复制到系统剪贴板 |
+| `backToTop` | 返回顶部 | 页面向下发生滚动时 | 触发平滑滚动使视口返回页面顶部 |
+| `sharePageLink` | 复制页面链接 | 在允许启用的页面内常驻显示 | 将当前页面的完整链接复制到剪贴板 |
+
+### 3. 交互与无障碍特性
+- **条件智能显隐**：未选中文本时不会渲染禁用的复制项，页面在顶部时不会出现无意义的返回顶部项；
+- **键盘导航支持**：按下方向键可循环切换菜单项，按下 Home 或 End 键直达首尾项，按下 Escape 键快速关闭菜单；
+- **无刷新路由适配**：菜单生命周期由持久层布局统一管理，在客户端页面跳转后自动关闭并即时就绪，无需重复初始化。

@@ -1,0 +1,185 @@
+# 站点基础与视觉定制
+
+`config/site.yaml` 是整个博客最重要的配置文件，负责站点的核心标识、色彩体系、横幅壁纸以及背景纹理系统。
+
+---
+
+## 完整配置示例与逐项解析
+
+```yaml
+# 1. 站点基本标识
+# 网站发布上线的根地址，结尾必须带斜杠
+site: "https://www.example.com/"
+
+# 站点子目录路径，若部署在根域名保持 "/" 即可
+base: "/"
+
+# 网站主标题与副标题（显示在浏览器标签页、RSS 与元数据中）
+title: "我的技术与生活小站"
+subtitle: "在这个小小的地方，悄悄堆叠生活过的痕迹。"
+
+# 默认语言代码：
+# 支持：zh_CN（简体中文）| zh_TW（繁体中文）| en（英语）| ja（日语）
+# 以及：ko（韩语）| es（西班牙语）| th（泰语）| vi（越南语）| tr（土耳其语）| id（印尼语）
+lang: "zh_CN"
+
+# 站点时区（IANA 时区名，例如 "Asia/Shanghai"、"Asia/Tokyo"、"America/New_York"）
+# 用于统一解析文章与说说的精确发布/更新时间（publishedAt / updatedAt）并决定同日文章排序
+# 时区独立于 lang：切换展示语言绝不会导致归档日期或文章排序发生偏移
+timeZone: "Asia/Shanghai"
+
+# 2. 电脑端顶栏排版
+topAppBar:
+  # 标题与导航菜单的对齐方式："center"（居中，推荐）| "left"（靠左）
+  contentAlign: "center"
+
+# 3. 前台访客显示偏好面板
+# 控制右上角“显示设置”弹窗中允许访客自行调节的开关
+displaySettings:
+  colorStyle: true       # 配色风格九宫格选择器
+  colorSpec: true        # 配色规范切换器
+  wallpaperMode: true    # 页面背景（壁纸/纯色）切换器
+  layoutMode: true       # 列表/网格排版切换器
+  reduceMotion: true     # 减弱动效切换器
+  texture: true          # 背景纹理切换器
+
+# 4. 主题配色系统
+themeColor:
+  # 默认主题色相（0 到 360，例如 315 为粉紫，262 为紫罗兰，345 为樱花粉）
+  hue: 315
+  # 是否对访客固定颜色（设为 true 则在前台隐藏调色板）
+  fixed: false
+  # 配色风格模式（支持 9 大色彩推导模式）：
+  # - tonalSpot：默认，温润低饱和
+  # - vibrant：高饱和鲜亮
+  # - expressive：富有表现力
+  # - rainbow：彩虹调色
+  # - fruitSalad：水果沙拉清新调色
+  # - monochrome：极简黑白灰单色
+  # - neutral：中性温和
+  # - fidelity：忠实还原基准色
+  # - content：内容自适应模式
+  style: "tonalSpot"
+  # 设计规范版本："2025"（推荐）或 "2021"
+  spec: "2025"
+```
+
+前台右上角打开的“显示设置”与配色风格选择面板：
+
+![显示设置与主题配色风格选择器](../../images/02-config/02-site/01-theme-color-palette.png)
+*图 1-1：前台显示设置面板与主题调色板*
+
+```yaml
+# 5. 默认背景模式
+wallpaperMode:
+  # 初始进入博客时的背景状态："banner"（显示横幅壁纸）| "none"（纯色极简背景）
+  defaultMode: "banner"
+
+# 6. 背景纹理系统
+texture:
+  enable: true
+  # 默认纹理预设（支持 6 大精美风格）：
+  # - "none"：无纹理
+  # - "starlight"：点点星光（默认推荐）
+  # - "cyber-dots"：赛博点阵与十字准星
+  # - "topography"：流光等高线波纹
+  # - "geometric"：晶体折纸几何多边形
+  # - "sakura"：落樱微瓣飘落
+  defaultPreset: "starlight"
+  # 纹理浓度透明度（建议范围 0.05 到 0.25，默认 0.12）
+  defaultOpacity: 0.12
+  # 是否允许背景微动效（访客开启减弱动效时会自动保持静止）
+  allowMotion: true
+```
+
+页面背景纹理效果展示：
+
+![星芒光斑纹理](../../images/02-config/02-site/02-texture-starlight.png)
+*图 1-2：点点星光背景纹理*
+
+![赛博点阵纹理](../../images/02-config/02-site/03-texture-cyber-dots.png)
+*图 1-3：赛博点阵背景纹理*
+
+![等高线等值线纹理](../../images/02-config/02-site/04-texture-topography.png)
+*图 1-4：等高线等值线背景纹理*
+
+```yaml
+# 7. 横幅壁纸与多图自动轮播
+banner:
+  src:
+    # 宽屏电脑端展示的图片列表（支持配置单张或多张）
+    # 建议放入 assets/images/banner/ 目录下以享受构建期 WebP 压缩
+    desktop:
+      - "assets/images/banner/desktop/1.webp"
+      - "assets/images/banner/desktop/2.webp"
+    # 手机移动端首页展示的图片列表
+    mobile:
+      - "assets/images/banner/mobile/1.webp"
+  # 图片裁切焦点："top"（顶部对齐）| "center"（居中）| "bottom"（底部对齐）
+  position: "center"
+  # 遮罩配置（覆盖微暗半透明层，提升文字可读性）
+  dim:
+    enable: true
+    opacity: 0.24
+  # 首页横幅文字
+  homeText:
+    enable: true
+    title: "我的技术与生活小站"
+    # 副标题列表（支持配置多条，由打字机依次键入展示）
+    subtitle:
+      - "在这个小小的地方，悄悄堆叠生活过的痕迹"
+      - "追光的人，终会万丈光芒"
+    # 副标题打字机动效
+    typewriter:
+      enable: true
+      speed: 120         # 键入每个字的间隔，单位毫秒
+      deleteSpeed: 50     # 删除每个字的间隔，单位毫秒
+      pauseTime: 2000     # 整句打完后的停顿时间，单位毫秒
+      loop: true          # 是否循环播放下一句
+  # 多图自动轮播（单张图片时自动降级为静态展示）
+  carousel:
+    enable: true
+    interval: 6000        # 每张图片的切换间隔，单位毫秒（最小 3000）
+    fadeDuration: 1200    # 交叉淡入淡出过渡时间，单位毫秒
+    # 镜头运镜动效模式：
+    # - "ken-burns"：循环运镜呼吸（默认）
+    # - "zoom-in"：缓慢拉近
+    # - "zoom-out"：缓慢拉远
+    # - "pan-left"：向左平移
+    # - "pan-right"：向右平移
+    # - "none"：静态无运镜
+    animation: "ken-burns"
+  # 底部动态水波纹（关闭后不生成波浪）
+  waves:
+    enable: true
+```
+
+首页横幅壁纸多图自动轮播与动态水波纹效果：
+
+![横幅壁纸多图轮播与水波纹效果](../../images/02-config/02-site/05-banner-carousel-effect.gif)
+*图 1-5：横幅壁纸多图轮播与水波纹效果*
+
+```yaml
+# 8. 远程图片防盗链配置
+imageOptimization:
+  # 自动为防盗链图床添加无引用头属性
+  noReferrerDomains:
+    - "*.hdslb.com"
+    - "*.bilibili.com"
+
+# 9. 文章目录深度
+toc:
+  enable: true
+  depth: 2               # 最大展示标题层级（1 到 3）
+
+# 10. 页面加载进度条
+progressIndicator:
+  # 进度条样式："dual"（双向扫描流光，默认）| "single"（单向扫描）
+  style: "dual"
+
+# 11. 浏览器网站图标 Favicon
+favicon:
+  - src: "/favicon/icon.png"
+    theme: "light"       # 可选："light" 或 "dark"
+    sizes: "32x32"
+```
