@@ -2,10 +2,10 @@
 # 覆盖主题的 src/config/siteConfig.ts。只写想覆盖的项，未写的项沿用主题默认值。
 
 # 站点发布地址，必须以斜杠结尾
-site: "https://shirone.mysqil.com/"
+site: "https://tsctsc6.github.io/"
 
 # 站点子路径，若部署在根目录保持 "/" 即可
-base: "/"
+base: "/Shirone/"
 
 # 站点标题与副标题
 title: "Shirone"
