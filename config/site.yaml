@@ -5,7 +5,7 @@
 site: "https://tsctsc6.github.io/"
 
 # 站点子路径，若部署在根目录保持 "/" 即可
-base: "Shirone/"
+base: "/"
 
 # 站点标题与副标题
 title: "Shirone"
